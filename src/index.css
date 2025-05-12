@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  max-width: 100vh;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* button {
+  width: 100%;
+} */
