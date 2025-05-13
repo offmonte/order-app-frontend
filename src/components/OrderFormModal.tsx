@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { newOrder } from "../services/orderService";
 import type { Order } from "../types/Order";
 
@@ -9,20 +9,34 @@ type OrderFormProps = {
 };
 
 export const OrderFormModal = ({ modal, setModal }: OrderFormProps) => {
-  const [form, setForm] = useState<Order>({ status: "Pendente" } as Order);
+  const [form, setForm] = useState<Omit<Order, 'id' | 'dataCriacao'>>({
+    cliente: "",
+    produto: "",
+    valor: 0,
+    status: "Pendente"
+  });
 
-  const handleChange = (field: keyof Order) => {
+  const handleChange = (field: keyof typeof form) => {
     return (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      setForm({ ...form, [field]: e.target.value });
+      setForm({ ...form, [field]: field === 'valor' ? parseFloat(e.target.value) : e.target.value });
     };
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    newOrder(form);
-    setForm({} as Order);
-    setModal(false);
+    try {
+      await newOrder(form as Order); // Tipagem flexível pro mock funcionar
+      setForm({
+        cliente: "",
+        produto: "",
+        valor: 0,
+        status: "Pendente"
+      });
+      setModal(false);
+    } catch (err) {
+      console.error("Erro ao criar pedido:", err);
+    }
   };
 
   if (!modal) return null;
@@ -38,7 +52,7 @@ export const OrderFormModal = ({ modal, setModal }: OrderFormProps) => {
           &times;
         </div>
         <h2 className="text-xl mb-4">Criar Pedido</h2>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block mb-1">Cliente</label>
             <input
@@ -81,7 +95,7 @@ export const OrderFormModal = ({ modal, setModal }: OrderFormProps) => {
             </select>
           </div>
           <button
-            onClick={handleSubmit}
+            type="submit"
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full"
           >
             Criar Pedido
